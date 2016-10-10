@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 对应dao接口 -->
+<mapper namespace="com.dao.CommentDao">
+    <resultMap id="CommentResult" type="Comment">
+        <result property="id" column="id"/>
+        <result property="nickName" column="nickName"/>
+        <result property="userIP" column="userIP"/>
+        <result property="content" column="content"/>
+        <result property="commentTime" column="commentTime"/>
+        <result property="reply" column="reply"/>
+        <association property="blog" column="blogId" select="com.dao.BlogDao.getBlogById"></association>
+    </resultMap>
+
+    <select id="findNewestCommentList" resultMap="CommentResult" parameterType="Map">
+        select * from t_comment order by commentTime desc 
+        <if test="start!=null and pageSize!=null">
+	        limit #{start},#{pageSize}
+        </if>
+    </select>
+
+    <select id="findCommentListByBlogId" resultMap="CommentResult" parameterType="Map">
+        SELECT * from t_comment 
+        <where>
+            <if test="blogId!=null and blogId!=''">
+              	and blogId=#{blogId}
+            </if>
+        </where>
+        order by commentTime desc 
+        <if test="start!=null and pageSize!=null">
+	        limit #{start},#{pageSize}
+        </if>
+    </select>
+	
+    <insert id="saveComment" parameterType="Comment">
+        insert into t_comment values(null,#{nickName},#{userIP},#{content},now(),#{reply},#{blog.id});
+    </insert>
+
+    <select id="getCommentTotal" resultType="Integer" parameterType="Map">
+        SELECT COUNT(*) AS total FROM t_comment
+        <where>
+            <if test="blogId!=null and blogId!=''">
+              	blogId=#{blogId}
+            </if>
+        </where>
+    </select>
+    
+    <delete id="deleteComment" parameterType="Integer">
+        delete from t_comment where id=#{id}
+    </delete>
+    
+    <update id="updateReply" parameterType="Map">
+        update t_comment
+        <set>
+            <if test="reply!=null and reply!=''">
+                reply=#{reply},
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+    
+    <delete id="deleteCommentByBlogId" parameterType="Integer">
+        delete from t_comment where blogId=#{blogId}
+    </delete>
+
+</mapper> 
